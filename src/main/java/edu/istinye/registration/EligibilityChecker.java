@@ -1,5 +1,6 @@
 package edu.istinye.registration;
 
+import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -42,9 +43,13 @@ public class EligibilityChecker {
         }
 
         // 2. Duplicate registration (R7)
-        if (request.registeredCourses().contains(request.courseCode())) {
-            return new RegistrationResult(Decision.DENIED,
-                    "Course " + request.courseCode() + " is already registered");
+        // Fix D1 + D2: compare codes ignoring upper/lower case (D1) and surrounding spaces (D2)
+        String requestedCode = normalize(request.courseCode());
+        for (String registeredCode : request.registeredCourses()) {
+            if (normalize(registeredCode).equals(requestedCode)) {
+                return new RegistrationResult(Decision.DENIED,
+                        "Course " + request.courseCode() + " is already registered");
+            }
         }
 
         // 3. Prerequisite (R5) - no override possible
@@ -78,5 +83,18 @@ public class EligibilityChecker {
         }
         return new RegistrationResult(Decision.DENIED,
                 "Exceeds maximum overload (" + total + "/" + maxWithOverload + ")");
+    }
+
+    /**
+     * Fix D1 + D2: puts a course code into one standard form so that
+     * "swe411", " SWE411" and "SWE411" are all treated as the same course.
+     * Locale.ROOT makes toUpperCase behave the same on every computer
+     * (for example, a Turkish locale would turn "i" into a dotted capital "İ").
+     *
+     * @param code a course code
+     * @return the code without surrounding spaces, in upper case
+     */
+    private String normalize(String code) {
+        return code.trim().toUpperCase(Locale.ROOT);
     }
 }

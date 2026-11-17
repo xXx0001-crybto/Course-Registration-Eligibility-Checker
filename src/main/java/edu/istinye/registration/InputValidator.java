@@ -14,6 +14,8 @@ public class InputValidator {
     public static final int MAX_SEMESTER = 8;
     public static final int MIN_COURSE_CREDITS = 1;
     public static final int MAX_COURSE_CREDITS = 10;
+    // Fix D4 (R4b): 36 highest limit + 6 overload = 42
+    public static final int MAX_REGISTERED_CREDITS = 42;
 
     /**
      * Validates a request.
@@ -38,7 +40,9 @@ public class InputValidator {
         }
 
         // R1: GPA range
-        if (request.gpa() < MIN_GPA || request.gpa() > MAX_GPA) {
+        // Fix D3: NaN is not caught by range comparisons (every comparison with NaN is false)
+        if (Double.isNaN(request.gpa())
+                || request.gpa() < MIN_GPA || request.gpa() > MAX_GPA) {
             return Optional.of("GPA must be between 0.00 and 4.00");
         }
 
@@ -53,8 +57,10 @@ public class InputValidator {
         }
 
         // R4: credit ranges
-        if (request.registeredCredits() < 0) {
-            return Optional.of("Registered credits cannot be negative");
+        // Fix D4 (R4b): registered credits must also have an upper limit
+        if (request.registeredCredits() < 0
+                || request.registeredCredits() > MAX_REGISTERED_CREDITS) {
+            return Optional.of("Registered credits must be between 0 and 42");
         }
         if (request.courseCredits() < MIN_COURSE_CREDITS
                 || request.courseCredits() > MAX_COURSE_CREDITS) {
