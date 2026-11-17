@@ -143,4 +143,13 @@ class EligibilityCheckerTest {
         assertTrue(result.reason().contains("already registered"),
                 "Reason was: " + result.reason());
     }
+
+    // ---------------------------------------------------------------------------------
+    // Added after JaCoCo showed the 'no match' branch of the duplicate check was never executed.
+    @Test
+    @DisplayName("COV-1: different course already registered -> APPROVED")
+    void differentCourseRegisteredIsApproved() {
+        RegistrationRequest request = new RegistrationRequest(2.50, 3, 10, "SWE411", 4, true, false, Set.of("CSE101"));
+        assertDecision(Decision.APPROVED, request);
+    }
 }
